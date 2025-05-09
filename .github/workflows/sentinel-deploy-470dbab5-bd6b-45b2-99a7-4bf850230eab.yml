@@ -39,9 +39,9 @@ jobs:
     steps:
     - name: Login to Azure (Attempt 1)
       env:
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} 
-        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_SENTINEL_CLIENTID_470DBAB5BD6B45B299A74BF850230EAB }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_SENTINEL_TENANTID_470DBAB5BD6B45B299A74BF850230EAB }} 
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470DBAB5BD6B45B299A74BF850230EAB }}
       continue-on-error: false
       id: login1
       uses: azure/powershell@v2
