@@ -63,12 +63,15 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
+          $applicationId = $env:AZURE_CLIENT_ID
+          $tenantId = $env:AZURE_TENANT_ID
+          $subscription = $env:AZURE_SUBSCRIPTION_ID
           Clear-AzContext -Force #This is only necessary on self-hosted runners
           $connectAzAccountParams = @{
            ServicePrincipal = $true
-           ApplicationId    = $env:AZURE_CLIENT_ID
-           TenantId         = $env:AZURE_AZURE_TENANT_ID
-           Subscription     = $env:AZURE_SUBSCRIPTION_ID
+           ApplicationId    = $applicationId
+           TenantId         = $tenantId
+           Subscription     = $subscription
            FederatedToken   = $IdToken
            Environment      = 'AzurePPE'
            Scope            = 'CurrentUser' #Future steps can use this context, it will be thrown away at the end of run
