@@ -66,7 +66,7 @@ jobs:
           Write-Host $Env:clientId
           Write-Host $Env:tenantId
           Write-Host $Env:subId
-          Connect-AzAccount -Environment AzurePPE -Subscription $Env:subId  -ApplicationId $Env:clientId -ServicePrincipal -Tenant $Env:tenantId -FederatedToken $IdToken;
+          Connect-AzAccount -ServicePrincipal -Tenant $Env:tenantId -ApplicationId $Env:clientId -FederatedToken $IdToken -Environment AzurePPE -Scope Process
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
