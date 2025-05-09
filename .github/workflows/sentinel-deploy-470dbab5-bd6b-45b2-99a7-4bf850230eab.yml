@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Login to Azure (Attempt 1)
-      continue-on-error: true
+      continue-on-error: false
       id: login1
       uses: azure/powershell@v2
       with:
@@ -59,7 +59,20 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
+          Clear-AzContext -Force #This is only necessary on self-hosted runners
+          $connectAzAccountParams = @{
+           ServicePrincipal = $true
+           ApplicationId    = ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }}
+           TenantId         = ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} 
+           Subscription     = ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }}
+           FederatedToken   = $IdToken
+           Environment      = 'AzurePPE'
+           Scope            = 'CurrentUser' #Future steps can use this context, it will be thrown away at the end of run
+           WarningAction    = 'SilentlyContinue' #Suppresses a warning about the client assertion saved in AzureRmContext.json
+          }
+          $context = Connect-AzAccount @connectAzAccountParams
+          if (-not $context) { throw 'Connect-AzAccount ran but no context was returned. This is probably a bug.' }
+          "Connected to $($context.Context.Account)"
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
