@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Login to Azure (Attempt 1)
-      continue-on-error: true
+      continue-on-error: false
       id: login1
       uses: azure/powershell@v2
       with:
@@ -59,6 +59,9 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
+          Write-Host ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_79e4647bc27e48388a0144f78685740e }}
+          Write-Host ${{ secrets.AZURE_SENTINEL_TENANTID_79e4647bc27e48388a0144f78685740e }}
+          Write-Host ${{ secrets.AZURE_SENTINEL_CLIENTID_79e4647bc27e48388a0144f78685740e }}
           Connect-AzAccount  -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_79e4647bc27e48388a0144f78685740e }}  -Environment AzurePPE  -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_79e4647bc27e48388a0144f78685740e }} -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_79e4647bc27e48388a0144f78685740e }} -FederatedToken $IdToken;
 
     - name: Wait 30 seconds if login attempt 1 failed
@@ -87,6 +90,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
+          Write-Host 
           Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_79e4647bc27e48388a0144f78685740e }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_79e4647bc27e48388a0144f78685740e }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_79e4647bc27e48388a0144f78685740e }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
 
     - name: Wait 30 seconds if login attempt 2 failed
