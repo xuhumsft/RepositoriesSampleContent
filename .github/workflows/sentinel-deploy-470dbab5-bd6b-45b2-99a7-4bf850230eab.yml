@@ -38,6 +38,10 @@ jobs:
 
     steps:
     - name: Login to Azure (Attempt 1)
+      env:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} 
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }}
       continue-on-error: false
       id: login1
       uses: azure/powershell@v2
@@ -62,9 +66,9 @@ jobs:
           Clear-AzContext -Force #This is only necessary on self-hosted runners
           $connectAzAccountParams = @{
            ServicePrincipal = $true
-           ApplicationId    = ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }}
-           TenantId         = ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} 
-           Subscription     = ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }}
+           ApplicationId    = $env:AZURE_CLIENT_ID
+           TenantId         = $env:AZURE_AZURE_TENANT_ID
+           Subscription     = $env:AZURE_SUBSCRIPTION_ID
            FederatedToken   = $IdToken
            Environment      = 'AzurePPE'
            Scope            = 'CurrentUser' #Future steps can use this context, it will be thrown away at the end of run
