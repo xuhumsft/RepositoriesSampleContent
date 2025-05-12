@@ -26,7 +26,7 @@ jobs:
       workspaceId: 'd67b16c8-7718-48cc-bb81-6b1d47ccbc3f'
       directory: '${{ github.workspace }}'
       cloudEnv: 'AzurePPE'
-      contentTypes: 'AnalyticsRule'
+      contentTypes: 'AutomationRule'
       branch: 'samuelkuangms-patch-1'
       sourceControlId: '470dbab5-bd6b-45b2-99a7-4bf850230eab'
       rootDirectory: '${{ github.workspace }}'
@@ -38,11 +38,7 @@ jobs:
 
     steps:
     - name: Login to Azure (Attempt 1)
-      env:
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_SENTINEL_CLIENTID_470DBAB5BD6B45B299A74BF850230EAB }}
-        AZURE_TENANT_ID: ${{ secrets.AZURE_SENTINEL_TENANTID_470DBAB5BD6B45B299A74BF850230EAB }} 
-        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470DBAB5BD6B45B299A74BF850230EAB }}
-      continue-on-error: false
+      continue-on-error: true
       id: login1
       uses: azure/powershell@v2
       with:
@@ -63,23 +59,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          $applicationId = $env:AZURE_CLIENT_ID
-          $tenantId = $env:AZURE_TENANT_ID
-          $subscription = $env:AZURE_SUBSCRIPTION_ID
-          Clear-AzContext -Force #This is only necessary on self-hosted runners
-          $connectAzAccountParams = @{
-           ServicePrincipal = $true
-           ApplicationId    = $applicationId
-           TenantId         = $tenantId
-           Subscription     = $subscription
-           FederatedToken   = $IdToken
-           Environment      = 'AzurePPE'
-           Scope            = 'CurrentUser' #Future steps can use this context, it will be thrown away at the end of run
-           WarningAction    = 'SilentlyContinue' #Suppresses a warning about the client assertion saved in AzureRmContext.json
-          }
-          $context = Connect-AzAccount @connectAzAccountParams
-          if (-not $context) { throw 'Connect-AzAccount ran but no context was returned. This is probably a bug.' }
-          "Connected to $($context.Context.Account)"
+          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_470dbab5bd6b45b299a74bf850230eab }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_470dbab5bd6b45b299a74bf850230eab }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_470dbab5bd6b45b299a74bf850230eab }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
