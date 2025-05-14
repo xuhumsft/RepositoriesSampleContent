@@ -26,7 +26,7 @@ jobs:
       workspaceId: 'ad22f9fa-fa9b-41a7-b2d3-a8cd2019b6a3'
       directory: '${{ github.workspace }}'
       cloudEnv: 'AzureCloud'
-      contentTypes: 'Parser'
+      contentTypes: 'AnalyticsRule'
       branch: 'samuelkuangms-patch-1'
       sourceControlId: '5075938c-0278-457c-902e-2e5fac7529c0'
       rootDirectory: '${{ github.workspace }}'
