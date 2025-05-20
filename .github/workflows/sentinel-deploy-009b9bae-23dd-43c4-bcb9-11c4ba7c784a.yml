@@ -59,7 +59,8 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
+          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process'
+          Set-AzContext -SubscriptionId ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -TenantId ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }}
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
