@@ -59,7 +59,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process'
+          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process'  -Debug
           Set-AzContext -SubscriptionId ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -TenantId ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }}
 
     - name: Wait 30 seconds if login attempt 1 failed
@@ -67,7 +67,7 @@ jobs:
       run: powershell Start-Sleep -s 30
 
     - name: Login to Azure (Attempt 2)
-      continue-on-error: true
+      continue-on-error: false
       id: login2
       uses: azure/powershell@v2
       with:
@@ -88,7 +88,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
+          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken  -Debug
 
     - name: Wait 30 seconds if login attempt 2 failed
       if: ${{ steps.login2.outcome=='failure' }}
