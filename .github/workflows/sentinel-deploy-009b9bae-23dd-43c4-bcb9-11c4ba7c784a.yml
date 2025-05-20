@@ -41,7 +41,7 @@ jobs:
 
     steps:
     - name: Login to Azure (Attempt 1)
-      continue-on-error: true
+      continue-on-error: false
       id: login1
       uses: azure/powershell@v2
       with:
@@ -62,8 +62,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -Environment AzurePPE -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -FederatedToken $IdToken -Scope 'Process'
-          Set-AzContext -SubscriptionId $env:loginSubscription -TenantId -Tenant $env:loginTenantId
+          Connect-AzAccount -Environment AzurePPE -ServicePrincipal -Tenant $env:loginTenantId -Subscription $env:loginSubscription -ApplicationId $env:loginAppId -FederatedToken $IdToken -Scope 'Process'
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
@@ -92,7 +91,7 @@ jobs:
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
           Update-AzConfig -DefaultSubscriptionForLogin $env:loginSubscription
-          Connect-AzAccount -Environment AzurePPE -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -FederatedToken $IdToken -Scope 'Process'
+         
 
     - name: Wait 30 seconds if login attempt 2 failed
       if: ${{ steps.login2.outcome=='failure' }}
