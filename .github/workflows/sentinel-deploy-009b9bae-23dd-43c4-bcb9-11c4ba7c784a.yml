@@ -62,7 +62,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -Environment AzurePPE -ServicePrincipal -Tenant $env:loginTenantId -Subscription $env:loginSubscription -ApplicationId $env:loginAppId -FederatedToken $IdToken -Scope 'Process'
+          Connect-AzAccount -Environment AzurePPE -ApplicationId $env:loginAppId -ServicePrincipal -Tenant $env:loginTenantId -Subscription $env:loginSubscription -FederatedToken $IdToken -Scope 'Process'
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
