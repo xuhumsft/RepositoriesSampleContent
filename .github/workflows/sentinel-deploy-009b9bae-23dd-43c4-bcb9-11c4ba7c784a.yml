@@ -62,7 +62,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process' -Debug
+          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process'
           Set-AzContext -SubscriptionId $env:loginSubscription -TenantId -Tenant $env:loginTenantId
 
     - name: Wait 30 seconds if login attempt 1 failed
@@ -92,7 +92,7 @@ jobs:
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
           Update-AzConfig -DefaultSubscriptionForLogin $env:loginSubscription
-          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -Environment AzurePPE -FederatedToken $IdToken -Debug
+          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -Environment AzurePPE -FederatedToken $IdToken -Scope 'Process'
 
     - name: Wait 30 seconds if login attempt 2 failed
       if: ${{ steps.login2.outcome=='failure' }}
