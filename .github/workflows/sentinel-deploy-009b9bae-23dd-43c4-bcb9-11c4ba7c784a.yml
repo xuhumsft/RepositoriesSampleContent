@@ -32,6 +32,9 @@ jobs:
       rootDirectory: '${{ github.workspace }}'
       githubAuthToken: ${{ secrets.GITHUB_TOKEN }}
       smartDeployment: 'true'
+      loginTenantId: '${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }}'
+      loginSubscription: '${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }}'
+      loginAppId: '${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }}'
     permissions:
       contents: write
       id-token: write # Require write permission to Fetch an OIDC token.
@@ -59,8 +62,8 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process'  -Debug
-          Set-AzContext -SubscriptionId ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -TenantId ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }}
+          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -FederatedToken $IdToken -Environment AzurePPE -Scope 'Process' -Debug
+          Set-AzContext -SubscriptionId $env:loginSubscription -TenantId -Tenant $env:loginTenantId
 
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
@@ -88,7 +91,8 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken  -Debug
+          Update-AzConfig -DefaultSubscriptionForLogin $env:loginSubscription
+          Connect-AzAccount -ServicePrincipal -Tenant $env:loginTenantId -ApplicationId $env:loginAppId -Environment AzurePPE -FederatedToken $IdToken -Debug
 
     - name: Wait 30 seconds if login attempt 2 failed
       if: ${{ steps.login2.outcome=='failure' }}
