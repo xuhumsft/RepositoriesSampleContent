@@ -40,10 +40,15 @@ jobs:
     - name: Login to Azure (Attempt 1)
       continue-on-error: true
       id: login1
-      uses: azure/cli@v2
+      uses: azure/powershell@v2
       with:
         azPSVersion: 'latest'
         inlineScript: |
+          Invoke-WebRequest -Uri https://azcliprod.blob.core.windows.net/msi/azure-cli-2.19.1.msi -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList "/I AzureCLI.msi /quiet"; rm .\AzureCLI.msi
+          setx /M PATH "$env:Path += ;C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          Test-Path -Path "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          az version
           az cloud register --name AzurePPE --endpoint-active-directory https://login.windows-ppe.net --endpoint-resource-manager https://management.azure.com/ --endpoint-active-directory-resource-id https://management.core.windows.net  --endpoint-active-directory-graph-resource-id https://graph.ppe.windows.net/ 
           az cloud set --name AzurePPE
           az cloud show
