@@ -40,16 +40,14 @@ jobs:
     - name: Login to Azure (Attempt 1)
       continue-on-error: true
       id: login1
-      uses: azure/powershell@v2
+      uses: azure/cli@v2
       with:
         azPSVersion: 'latest'
         inlineScript: |
-          Add-AzEnvironment `
-          -Name AzurePPE `
-          -ActiveDirectoryEndpoint https://login.windows-ppe.net `
-          -ResourceManagerEndpoint https://management.azure.com/ `
-          -ActiveDirectoryServiceEndpointResourceId https://management.core.windows.net `
-          -GraphEndpoint https://graph.ppe.windows.net/ | out-null;
+          az cloud register --name AzurePPE --endpoint-active-directory https://login.windows-ppe.net --endpoint-resource-manager https://management.azure.com/ --endpoint-active-directory-resource-id https://management.core.windows.net  --endpoint-active-directory-graph-resource-id https://graph.ppe.windows.net/ 
+          # Please refer to https://learn.microsoft.com/en-us/cli/azure/cloud?view=azure-cli-latest#az-cloud-register for more details and specific config options
+          az cloud set --name AzurePPE
+          az cloud show
           $oidcTokenParams = @{
            Uri            = $env:ACTIONS_ID_TOKEN_REQUEST_URL
            Body           = @{
@@ -59,14 +57,15 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
-
+          az login --service-principal --username ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} --tenant ${{ secrbae23dd43c4bcb911ets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} --subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9c4ba7c784a }} --federated-token $IdToken
+          az account show
+          
     - name: Wait 30 seconds if login attempt 1 failed
       if: ${{ steps.login1.outcome=='failure' }}
       run: powershell Start-Sleep -s 30
 
     - name: Login to Azure (Attempt 2)
-      continue-on-error: true
+      continue-on-error: false
       id: login2
       uses: azure/powershell@v2
       with:
@@ -77,7 +76,7 @@ jobs:
           -ActiveDirectoryEndpoint https://login.windows-ppe.net `
           -ResourceManagerEndpoint https://management.azure.com/ `
           -ActiveDirectoryServiceEndpointResourceId https://management.core.windows.net `
-          -GraphEndpoint https://graph.ppe.windows.net/ | out-null;
+          -GraphEndpoint https://graph.ppe.windows.net/
           $oidcTokenParams = @{
            Uri            = $env:ACTIONS_ID_TOKEN_REQUEST_URL
            Body           = @{
@@ -87,7 +86,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken | out-null;
+          Connect-AzAccount -ServicePrincipal -Tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9bae23dd43c4bcb911c4ba7c784a }} -ApplicationId ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} -Environment AzurePPE -FederatedToken $IdToken
 
     - name: Wait 30 seconds if login attempt 2 failed
       if: ${{ steps.login2.outcome=='failure' }}
