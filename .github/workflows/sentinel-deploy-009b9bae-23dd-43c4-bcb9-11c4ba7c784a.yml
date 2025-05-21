@@ -45,7 +45,6 @@ jobs:
         azPSVersion: 'latest'
         inlineScript: |
           az cloud register --name AzurePPE --endpoint-active-directory https://login.windows-ppe.net --endpoint-resource-manager https://management.azure.com/ --endpoint-active-directory-resource-id https://management.core.windows.net  --endpoint-active-directory-graph-resource-id https://graph.ppe.windows.net/ 
-          # Please refer to https://learn.microsoft.com/en-us/cli/azure/cloud?view=azure-cli-latest#az-cloud-register for more details and specific config options
           az cloud set --name AzurePPE
           az cloud show
           $oidcTokenParams = @{
@@ -57,7 +56,7 @@ jobs:
            Token          = $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN | ConvertTo-SecureString -AsPlainText
           }
           $IdToken = (Invoke-RestMethod @oidcTokenParams).value
-          az login --service-principal --username ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} --tenant ${{ secrbae23dd43c4bcb911ets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} --subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9c4ba7c784a }} --federated-token $IdToken
+          az login --service-principal --username ${{ secrets.AZURE_SENTINEL_CLIENTID_009b9bae23dd43c4bcb911c4ba7c784a }} --tenant ${{ secrets.AZURE_SENTINEL_TENANTID_009b9bae23dd43c4bcb911c4ba7c784a }} --subscription ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_009b9c4ba7c784a }} --federated-token $IdToken
           az account show
           
     - name: Wait 30 seconds if login attempt 1 failed
