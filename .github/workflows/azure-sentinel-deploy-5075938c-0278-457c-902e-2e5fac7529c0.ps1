@@ -4,6 +4,7 @@ $ResourceGroupName = $Env:resourceGroupName
 $WorkspaceName = $Env:workspaceName
 $WorkspaceId = $Env:workspaceId
 $Directory = $Env:directory
+$Creds = $Env:creds
 $contentTypes = $Env:contentTypes
 $contentTypeMapping = @{
     "AnalyticsRule"=@("Microsoft.OperationalInsights/workspaces/providers/alertRules", "Microsoft.OperationalInsights/workspaces/providers/alertRules/actions");
@@ -188,6 +189,57 @@ function AttemptInvokeRestMethod($method, $url, $body, $contentTypes, $maxRetrie
     return $result
 }
 
+function AttemptAzLogin($psCredential, $tenantId, $cloudEnv) {
+    $maxLoginRetries = 3
+    $delayInSeconds = 30
+    $retryCount = 1
+    $stopTrying = $false
+    do {
+        try {
+            Connect-AzAccount -ServicePrincipal -Tenant $tenantId -Credential $psCredential -Environment $cloudEnv | out-null;
+            Write-Host "Login Successful"
+            $stopTrying = $true
+        }
+        catch {
+            if ($retryCount -ge $maxLoginRetries) {
+                Write-Host "Login failed after $maxLoginRetries attempts."
+                $stopTrying = $true
+            }
+            else {
+                Write-Host "Login attempt failed, retrying in $delayInSeconds seconds."
+                Start-Sleep -Seconds $delayInSeconds
+                $retryCount++
+            }
+        }
+    }
+    while (-not $stopTrying)
+}
+
+function ConnectAzCloud {
+    $RawCreds = $Creds | ConvertFrom-Json
+
+    Clear-AzContext -Scope Process;
+    Clear-AzContext -Scope CurrentUser -Force -ErrorAction SilentlyContinue;
+
+    if ($CloudEnv -ne 'AzureChinaCloud' -and $CloudEnv -ne 'AzureUSGovernment')
+    {
+        Write-Output "Attempting Adding new cloud";
+
+        Add-AzEnvironment `
+        -Name $CloudEnv `
+        -ActiveDirectoryEndpoint $RawCreds.activeDirectoryEndpointUrl `
+        -ResourceManagerEndpoint $RawCreds.resourceManagerEndpointUrl `
+        -ActiveDirectoryServiceEndpointResourceId $RawCreds.activeDirectoryServiceEndpointResourceId `
+        -GraphEndpoint $RawCreds.graphEndpointUrl | out-null;
+    }
+
+    $servicePrincipalKey = ConvertTo-SecureString $RawCreds.clientSecret.replace("'", "''") -AsPlainText -Force
+    $psCredential = New-Object System.Management.Automation.PSCredential($RawCreds.clientId, $servicePrincipalKey)
+
+    AttemptAzLogin $psCredential $RawCreds.tenantId $CloudEnv
+    Set-AzContext -Tenant $RawCreds.tenantId | out-null;
+}
+
 function AttemptDeployMetadata($deploymentName, $resourceGroupName, $templateObject, $templateType, $paramFileType, $containsWorkspaceParam) {
     $deploymentInfo = $null
     try {
@@ -205,19 +257,46 @@ function AttemptDeployMetadata($deploymentName, $resourceGroupName, $templateObj
             $contentId = $resource.Split("/")[-1]
             $metadataCustomVersion = GetMetadataCustomVersion $templateType $paramFileType $containsWorkspaceParam
 
-            try {
-                New-AzResourceGroupDeployment -Name "md-$deploymentName" -ResourceGroupName $ResourceGroupName -TemplateFile $metadataFilePath `
-                    -parentResourceId $resource `
-                    -kind $contentKind `
-                    -contentId $contentId `
-                    -sourceControlId $sourceControlId `
-                    -workspace $workspaceName `
-                    -customVersion $metadataCustomVersion `
-                    -ErrorAction Stop | Out-Host
-                Write-Host "[Info] Created metadata metadata for $contentKind with parent resource id $resource"
-            }
-            catch {
-                Write-Host "[Warning] Failed to deploy metadata for $contentKind with parent resource id $resource with error $_"
+            $isSuccess = $false
+            $currentAttempt = 0
+
+            While (($currentAttempt -lt $MaxRetries) -and (-not $isSuccess))
+            {
+                $currentAttempt ++
+                Try
+                {
+                    New-AzResourceGroupDeployment -Name "md-$deploymentName" -ResourceGroupName $ResourceGroupName -TemplateFile $metadataFilePath `
+                        -parentResourceId $resource `
+                        -kind $contentKind `
+                        -contentId $contentId `
+                        -sourceControlId $sourceControlId `
+                        -workspace $workspaceName `
+                        -customVersion $metadataCustomVersion `
+                        -ErrorAction Stop | Out-Host
+                    Write-Host "[Info] Created metadata for $contentKind with parent resource id $resource"
+                    $isSuccess = $true
+                }
+                Catch [Exception]
+                {
+                    $err = $_
+                    if (-not (IsRetryable "md-$deploymentName"))
+                    {
+                        Write-Host "[Warning] Failed to deploy metadata for $contentKind with parent resource id $resource with error: $err"
+                        break
+                    }
+                    else
+                    {
+                        if ($currentAttempt -le $MaxRetries)
+                        {
+                            Write-Host "[Warning] Failed to deploy metadata for $contentKind with error: $err. Retrying in $secondsBetweenAttempts seconds..."
+                            Start-Sleep -Seconds $secondsBetweenAttempts
+                        }
+                        else
+                        {
+                            Write-Host "[Warning] Failed to deploy metadata for $contentKind after $currentAttempt attempts with error: $err"
+                        }
+                    }
+                }
             }
         }
     }
@@ -594,6 +673,12 @@ function TryGetCsvFile {
 function main() {
     git config --global user.email "donotreply@microsoft.com"
     git config --global user.name "Sentinel"
+
+    if ($CloudEnv -ne 'AzureCloud')
+    {
+        Write-Output "Attempting Sign In to Azure Cloud"
+        ConnectAzCloud
+    }
 
     TryGetCsvFile
     LoadDeploymentConfig
