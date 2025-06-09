@@ -1,4 +1,4 @@
-name: Deploy Content to test-workspace [5075938c-0278-457c-902e-2e5fac7529c0]
+name: Deploy Content to a-luna-test-0 [5075938c-0278-457c-902e-2e5fac7529c0]
 # Note: This workflow will deploy everything in the root directory.
 # To deploy content only from a specific path (for example SentinelContent):
 #   1. Add the target path to the "paths" property like such
@@ -21,11 +21,11 @@ jobs:
   deploy-content:
     runs-on: windows-latest
     env:
-      resourceGroupName: 'bqiao-test'
-      workspaceName: 'test-workspace'
-      workspaceId: '564ca64e-fbfb-4880-8b4b-940926515ac0'
+      resourceGroupName: 'a-luna-rg'
+      workspaceName: 'a-luna-test-0'
+      workspaceId: 'bc14d9a7-86e4-4c33-b9a8-1f39ef50a911'
       directory: '${{ github.workspace }}'
-      cloudEnv: 'AzureUSGovernment'
+      cloudEnv: 'AzureChinaCloud'
       contentTypes: 'AnalyticsRule'
       branch: 'samuelkuangms-patch-1'
       sourceControlId: '5075938c-0278-457c-902e-2e5fac7529c0'
@@ -45,8 +45,8 @@ jobs:
         client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_5075938c0278457c902e2e5fac7529c0 }}
         tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_5075938c0278457c902e2e5fac7529c0 }}
         subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_5075938c0278457c902e2e5fac7529c0 }}
-        environment: 'AzureUSGovernment'
-        audience: api://AzureADTokenExchangeUSGov
+        environment: 'AzureChinaCloud'
+        audience: api://AzureADTokenExchangeChina
         enable-AzPSSession: true
 
     - name: Wait 30 seconds if login attempt 1 failed
@@ -62,8 +62,8 @@ jobs:
         client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_5075938c0278457c902e2e5fac7529c0 }}
         tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_5075938c0278457c902e2e5fac7529c0 }}
         subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_5075938c0278457c902e2e5fac7529c0 }}
-        environment: 'AzureUSGovernment'
-        audience: api://AzureADTokenExchangeUSGov
+        environment: 'AzureChinaCloud'
+        audience: api://AzureADTokenExchangeChina
         enable-AzPSSession: true
 
     - name: Wait 30 seconds if login attempt 2 failed
@@ -79,8 +79,8 @@ jobs:
         client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_5075938c0278457c902e2e5fac7529c0 }}
         tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_5075938c0278457c902e2e5fac7529c0 }}
         subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_5075938c0278457c902e2e5fac7529c0 }}
-        environment: 'AzureUSGovernment'
-        audience: api://AzureADTokenExchangeUSGov
+        environment: 'AzureChinaCloud'
+        audience: api://AzureADTokenExchangeChina
         enable-AzPSSession: true
 
     - name: Checkout
