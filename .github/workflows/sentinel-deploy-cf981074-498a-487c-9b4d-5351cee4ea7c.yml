@@ -26,8 +26,7 @@ jobs:
       workspaceId: 'b5831f8f-f947-432e-ae5b-dca753d8f7a6'
       directory: '${{ github.workspace }}'
       cloudEnv: 'AzureCloud'
-      creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_cf981074498a487c9b4d5351cee4ea7c }}
-      contentTypes: 'AnalyticsRule'
+      contentTypes: 'AutomationRule'
       branch: 'samuelkuangms-patch-1'
       sourceControlId: 'cf981074-498a-487c-9b4d-5351cee4ea7c'
       rootDirectory: '${{ github.workspace }}'
@@ -42,42 +41,53 @@ jobs:
       continue-on-error: true
       id: login1
       uses: azure/login@v2
-      if: ${{ env.cloudEnv == 'AzureCloud' }}
       with:
-        creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_cf981074498a487c9b4d5351cee4ea7c }}
+        client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_cf981074498a487c9b4d5351cee4ea7c }}
+        tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_cf981074498a487c9b4d5351cee4ea7c }}
+        subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_cf981074498a487c9b4d5351cee4ea7c }}
+        environment: 'AzureCloud'
+        audience: api://AzureADTokenExchange
         enable-AzPSSession: true
 
     - name: Wait 30 seconds if login attempt 1 failed
-      if: ${{ env.cloudEnv == 'AzureCloud' && steps.login1.outcome=='failure' }}
+      if: ${{ steps.login1.outcome=='failure' }}
       run: powershell Start-Sleep -s 30
 
     - name: Login to Azure (Attempt 2)
       continue-on-error: true
       id: login2
       uses: azure/login@v2
-      if: ${{ env.cloudEnv == 'AzureCloud' && steps.login1.outcome=='failure' }}
+      if: ${{ steps.login1.outcome=='failure' }}
       with:
-        creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_cf981074498a487c9b4d5351cee4ea7c }}
+        client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_cf981074498a487c9b4d5351cee4ea7c }}
+        tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_cf981074498a487c9b4d5351cee4ea7c }}
+        subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_cf981074498a487c9b4d5351cee4ea7c }}
+        environment: 'AzureCloud'
+        audience: api://AzureADTokenExchange
         enable-AzPSSession: true
 
     - name: Wait 30 seconds if login attempt 2 failed
-      if: ${{ env.cloudEnv == 'AzureCloud' && steps.login2.outcome=='failure' }}
+      if: ${{ steps.login2.outcome=='failure' }}
       run: powershell Start-Sleep -s 30
 
     - name: Login to Azure (Attempt 3)
       continue-on-error: false
       id: login3
       uses: azure/login@v2
-      if: ${{ env.cloudEnv == 'AzureCloud' && steps.login2.outcome=='failure'  }}
+      if: ${{ steps.login2.outcome=='failure'  }}
       with:
-        creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_cf981074498a487c9b4d5351cee4ea7c }}
+        client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_cf981074498a487c9b4d5351cee4ea7c }}
+        tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_cf981074498a487c9b4d5351cee4ea7c }}
+        subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_cf981074498a487c9b4d5351cee4ea7c }}
+        environment: 'AzureCloud'
+        audience: api://AzureADTokenExchange
         enable-AzPSSession: true
 
     - name: Checkout
       uses: actions/checkout@v3
 
     - name: Deploy Content to Microsoft Sentinel
-      uses: azure/powershell@v1
+      uses: azure/powershell@v2
       with:
         azPSVersion: 'latest'
         inlineScript: |
